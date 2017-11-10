@@ -28,7 +28,7 @@
 				<ul class="nav navbar-nav navbar-right">
 					<li class="active"><a href="#">Global Participation</a></li>
 					<li><a href="line.html">Participation over time</a></li>
-					<li><a href="pie.html">Enrolled vs. Non-enrolled</a></li>
+					<li><a href="pie.html">Population Breakdown</a></li>
 				</ul>
 			</div>
 		</div>
@@ -37,12 +37,12 @@
 	<div class="container">
 
 		<div class="starter-template">
-			<div class="form-group row">
+			<div class="form-group" id="chooser">
 				<div class="col-xs-1  pull-right">
-					<button type="button" class="btn btn-default btn-md" onclick="play()">Play</button>
+					<button type="button" class="btn btn-default btn-md" onclick="play()" style="font-size:12px; padding: 2mm;">Next year</button>
 				</div>
 				<div class="col-xs-1  pull-right">
-					<select class="form-control" style="font-size:15px;" id="year" onchange="reloadYr(this);">
+					<select class="form-control" style="font-size:12px;" id="year" onchange="reloadYr(this);">
 					  <option value="1999">1999</option>
 					  <option value="2000">2000</option>
 					  <option value="2001">2001</option>
@@ -64,7 +64,7 @@
 					</select>
 				</div>
 				<div class="col-xs-4  pull-right">
-					<select class="form-control" style="font-size:15px;" id="indicator" onchange="reloadInd(this);">
+					<select class="form-control" style="font-size:12px;" id="indicator" onchange="reloadInd(this);">
 					  <option value="1">Gross enrolment ratio, pre-primary, both sexes (%)</option>
 					  <option value="2">Gross enrolment ratio, pre-primary, female (%)</option>
 					  <option value="3">Gross enrolment ratio, pre-primary, male (%)</option>
@@ -81,10 +81,24 @@
 				</div>
 				
 			</div>
+			<div id = "ger">
+			<h4>Gross Enrolment Ratio (GER)</h4>
+			 <p>Total enrolment in a specific level of <br/>
+			  education, regardless of age, expressed as <br/>
+			  a percentage of the eligible official school-age <br/>
+			  population corresponding to the same level of <br/>
+			  education in a given school year. <br><br>
+			  The purpose of GER is to show the general level <br>
+			  of participation in a given level of education. <br>
+			  It indicates the capacity of the education system<br>
+			  to enrol students of a particular age group.  </p>
+			</div>
 			<br>
 			<div id="canvas-svg" ></div>
 
 			<div id="tooltip-container"></div>
+
+			<!-- <div style=""> Gross Enrollment Ratio (GER) or Gross Enrollment Index (GEI) is a statistical measure used in the education sector and by the UN in its Education Index to determine the number of students enrolled in school at several different grade levels (like elementary, middle school and high school), and use it to show the ratio of the number of students who live in that country to those who qualify for the particular grade level. The United Nations Educational, Scientific and Cultural Organization(UNESCO), describes 'Gross Enrolment Ratio' as the total enrolment within a country "in a specific level of education, regardless of age, expressed as a percentage of the population in the official age group corresponding to this level of education."</div> -->
 
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
 			<script src="//cdnjs.cloudflare.com/ajax/libs/topojson/1.1.0/topojson.min.js"></script>
@@ -100,21 +114,48 @@
 
 <style>
 
+.form-group .col-xs-1{
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+.form-group .col-xs-4{
+   padding-left: 0px;
+  padding-right: 2px;
+}
+
+#ger{
+	position: fixed;
+	bottom: 80px;
+	right: 10px;
+	text-align: right;
+	font-size: 90%;
+}
+
+#chooser{
+	position: fixed;
+    bottom: 0;
+    right: 0px;
+    width: 55%;
+}
 #div dropdown{
 	color: white;
 }
 
 #canvas {
-	width: 50%;
+  width: 50%;
   height: 40%;
 }
 
 #canvas-svg {
-	width: 80%;
+  width: 80%;
   height: 50%;
-  margin-top: -100px;
-  
+  margin-top: 5px; 
+  margin-left: -20px; 
+}
 
+svg{
+	-webkit-transform:scale(1);
 }
 
 .land {
@@ -143,6 +184,10 @@
 .tooltip_value {
   margin-left: 20px;
   float: right;
+}
+
+body {
+  font: 15px avenir;
 }
 
 </style>

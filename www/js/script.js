@@ -1,166 +1,256 @@
-// ps -fA | grep python
-// python -m SimpleHTTPServer
+var countries = ["Argentina", "Armenia", "Aruba", "Australia", "Austria", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belgium", 
+"Belize", "Benin", "Bolivia", "Brazil", "Bulgaria", "Burkina Faso", "Cambodia", "Cameroon", "Canada", "Cape Verde", "Central African Republic", 
+"Chad", "Chile", "China", "Colombia", "Comoros", "Costa Rica", "Cote d'Ivoire", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", 
+"Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Eritrea", "Estonia", "Ethiopia", "Fiji", "Finland", "France", "French Polynesia", "Gabon", 
+"Germany", "Ghana", "Greece", "Grenada", "Guadeloupe", "Guam", "Guatemala", "Guinea", "Guyana", "Haiti", "Honduras", "Hong Kong", "Hungary", "India", 
+"Indonesia", "Iran", "Ireland", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kyrgyzstan", "Laos", "Latvia", "Lithuania", "Luxembourg", 
+"Macao", "Macedonia", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Martinique", "Mauritania", "Mauritius", "Mayotte", "Mexico",
+"Micronesia (country)", "Mongolia", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nepal", "Netherlands", "New Caledonia", "New Zealand", "Nicaragua", 
+"Niger", "Nigeria", "Norway", "Pakistan", "Palestine", "Panama", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Puerto Rico", "Reunion", 
+"Romania", "Russia", "Rwanda", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "Sao Tome and Principe", "Saudi Arabia", "Singapore", "Slovakia", 
+"Slovenia", "Solomon Islands", "South Africa", "South Korea", "Spain", "Sri Lanka", "Sweden", "Switzerland", "Syria", "Tajikistan", "Tanzania", "Thailand", 
+"Timor", "Togo", "Tonga", "Trinidad and Tobago", "Turkey", "Turkmenistan", "Uganda", "Ukraine", "United Kingdom", "United States", "United States Virgin Islands", 
+"Uruguay", "Uzbekistan", "Vanuatu", "Vietnam", "Zambia", "Zimbabwe"];
 
-// d3.csv("data/pre-primary-both.csv", function(data){
-// 	console.log(data[0]);
-// 	var female2ndData = data.filter(function(d) { 
-//     	if(d["Indicator"] == "Enrolment in lower secondary education, female (number)"){ 
-//         	return d;
-// 	    } 
-// 	})
-// 	console.log(female2ndData);
-// 	var both2ndData = data.filter(function(d) { 
-//     	if(d["Indicator"] == "Enrolment in upper secondary education, both sexes (number)"){ 
-//         	return d;
-// 	    } 
-// 	})
-// 	var p = d3.select("body")
-// 			.selectAll("p")
-// 			.data(data)
-// 			.enter()
-// 				.append("p")
-// 				.text(function (d){
-// 					return d.Value;
-// 				});
-// })
+graphCounter = 0;
 
-var margin = {top: 20, right: 20, bottom: 30, left: 40},
-width = 1150 - margin.left - margin.right,
-height = 500 - margin.top - margin.bottom;
+country = $("#country :selected").text();
 
-/* 
- * value accessor - returns the value to encode for a given data object.
- * scale - maps value to a visual display encoding, such as a pixel position.
- * map function - maps from data value to display value
- * axis - sets up axis
- */ 
+var dCountries = document.getElementById("country");
 
-// setup x 
-var xValue = function(d) { return d.Value;}, // data -> value
-    xScale = d3.scaleLinear().range([0, width]), // value -> display
-    xMap = function(d) { return xScale(xValue(d));}, // data -> display
-    xAxis = d3.axisBottom().scale(xScale);
+function populateDropdown(){
+    for(var i = 0; i < countries.length; i++) {
+        var opt = countries[i];
+        var el = document.createElement("option");
+        el.textContent = opt;
+        el.value = opt;
+        dCountries.appendChild(el);
+    }
+}
 
-// setup y
-var yValue = function(d) { return d.Time;}, // data -> value
-    yScale = d3.scaleLinear().range([height, 0]), // value -> display
-    yMap = function(d) { return yScale(yValue(d));}, // data -> display
-    yAxis = d3.axisLeft().scale(yScale).tickFormat(d3.format("d"));
+window.onload = function() {
+  graphCounter = 0;
+  populateDropdown();
+  country = "Argentina";
+  draw();
+}
 
-// setup fill color
-var cValue = function(d) { return d.Country;},
-color = d3.scaleOrdinal(d3.schemeCategory10);
+function reloadCountry(){
+    graphCounter++;
+    country = $("#country :selected").text();
+    draw();
+}
 
-// add the graph canvas to the body of the webpage
-var svg = d3.select("body").append("svg")
-.attr("width", width + margin.left + margin.right)
-.attr("height", height + margin.top + margin.bottom)
+
+function get_colors(n) {
+    var colors = ["#8dd3c7","#ffffb3","#bebada","#fb9a99","#80b1d3"];
+
+    return colors[ n % colors.length];
+}
+
+function draw(){
+    // d3.selectAll("svg").remove();
+
+    var margin = {top: 120, right: 230, bottom: 150, left: 200},
+    width = 1400 - margin.left - margin.right,
+    height = 700 - margin.top - margin.bottom;
+
+    var x = d3.scale.linear()
+    .range([0, width]);
+
+    var y = d3.scale.linear()
+    .range([height, 0]);
+
+    var color = d3.scale.category10();
+
+    var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+    .tickFormat(d3.format("d"));
+
+    var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    .ticks(5, "s");
+
+    var area = d3.svg.area()
+    .x(function(d) { return x(d.Year); })
+    .y0(function(d) { return y(d.y0); })
+    .y1(function(d) { return y(d.y0 + d.y); });
+
+
+    var stack = d3.layout.stack()
+    .values(function(d) { return d.values; });
+
+    var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    svg.append("text")
+    .attr("x", 0)
+    .attr("y", -60)
+    .attr("dy", "0.71em")
+    .attr("fill", "#000")
+    .text("Population breakdown by highest level of education achieved for those aged 15+ in " + country)
+    .style("font", "20px avenir")
+    .style("fill", "#000000");
+
+    svg.append("text")
+    .attr("x", 0)
+    .attr("y", 402)
+    .attr("dy", "0em")
+    .style("font", "12px avenir")
+    .style("fill", "#000000");
+
+    svg.append("text")
+    .attr("x", 0)
+    .attr("y", 402)
+    .attr("dy", "1em")
+    .style("font", "12px avenir")
+    .style("fill", "#000000");
+
+    svg.append("text")
+    .attr("x", 0)
+    .attr("y", 402)
+    .attr("dy", "3em")
+    .style("font", "12px avenir")
+    .style("fill", "#000000")
+    .style("font-weight", "bold");
+
+    svg.append("text")
+    .attr("x", 1110)
+    .attr("y", 450)
+    .attr("dy", "1em")
+    .style("font", "10px avenir")
+    .style("fill", "#898686")
+    .text("Close top graph [X]")
+    .on("mouseover", function(d){
+        d3.select(this)
+        .style("fill", "#797979");
+    })
+    .on("mouseout", function(d){
+        d3.select(this)
+        .style("fill", "#898686");
+    })
+    .on("click", function(d){
+        // d3.select(this.parentNode).remove();
+        d3.select("svg").remove();
+            });
+
+    d3.csv("data/breakdown.csv", function(error, data) {
+
+        data = data.filter(function(d){
+          if(d["Entity"] == country){
+            return d;
+            }
+        });
+
+
+        color.domain(d3.keys(data[0]).filter(function(key) {return key !== "Year" && key !== "Entity"; }));
+
+        data.forEach(function(d) {  
+            d["Aged 0-14"] = +d["Aged 0-14"];
+            d["No education"] = +d["No education"];
+            d["Primary education"]= +d["Primary education"];
+            d["Secondary education"]= +d["Secondary education"];
+            d["Tertiary education"] = +d["Tertiary education"];
+        }); 
+
+        max = (d3.max(data, function(d){ return  d["Aged 0-14"];})) + 
+                (d3.max(data, function(d){ return  d["No education"];})) + 
+                (d3.max(data, function(d){ return  d["Primary education"];})) + 
+                (d3.max(data, function(d){ return  d["Secondary education"];})) + 
+                (d3.max(data, function(d){ return  d["Tertiary education"];}))
+            ;
+
+        console.log(d3.max(max));
+        var browsers = stack(color.domain().map(function(name) {
+            return {
+              name: name,
+              values: data.map(function(d) {
+                return {Year: d.Year, y: d[name] * 1};
+            })
+          };
+      }));
+
+//   // Find the value of the hour with highest total value
+var maxYearVal = d3.max(data, function(d){
+    var vals = d3.keys(d).map(
+      function(key){ 
+        return (key !== "Year") ? d[key] : 0 });
+    return d3.sum(vals);
+});
+
+//   // Set domains for axes
+x.domain(d3.extent(data, function(d) { return d.Year; }));
+y.domain([0, max]);
+
+var browser = svg.selectAll(".browser")
+.data(browsers)
+.enter().append("g")
+.attr("class", "browser");
+
+browser.append("path")
+.attr("class", "area")
+.attr("d", function(d) { return area(d.values); })
+.style("fill", function(d,i) { 
+    return get_colors(i); });
+
+
+browser.append("text")
+.datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
+.attr("transform", function(d) { return "translate(" + x(d.value.Year) + "," + y(d.value.y0 + d.value.y / 2) + ")"; })
+.attr("x", -6)
+.attr("dy", "-0.882em")
+.attr("transform", function(d) { return "translate(500," + y(d.value.y0 + d.value.y / 2) + ")"; }) 
+
+svg.append("g")
+.attr("class", "x axis")
+.attr("transform", "translate(0," + height + ")")
+.call(xAxis).append("text")
+.attr("x", 350)
+.attr("y", 36)
+.attr("fill", "#000")
+
+svg.append("g")
+.attr("class", "y axis")
+.call(yAxis)
+.append("text")
+.attr("transform", "rotate(-90)")
+.attr("x", -250)
+.attr("y", -40)
+.attr("dy", "0.3408em")
+.attr("fill", "#000")
+
+var legend = svg.selectAll(".legend")
+.data(color.domain()).enter()
 .append("g")
-.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+.attr("class","legend")
+.attr("transform", "translate(" + (width +20) + "," + 0+ ")");
 
-// add the tooltip area to the webpage
-var tooltip = d3.select("body").append("div")
-.attr("class", "tooltip")
-.style("opacity", 0);
+legend.append("rect")
+.attr("x", 0) 
+.attr("y", function(d, i) { return 20 * i; })
+.attr("width", 10)
+.attr("height", 10)
+.style("fill", function(d, i) {
+    return get_colors(i);}); 
 
-var x = d3.scaleLinear().range([0, width]);
-var y = d3.scaleLinear().range([height, 0]);
+legend.append("text")
+.attr("x", 20) 
+.attr("dy", "0.75em")
+.attr("y", function(d, i) { return 20 * i; })
+.text(function(d) {return d});
 
-var valueline = d3.line()
-.x(function(d) { return x(d.Time); })
-.y(function(d) { return y(d.Value); });
-// load datas
-d3.csv("data/edu.csv", function(error, data) {
-  data = data.filter(function(d) {
-    return d["Country"] == "Philippines" &&
-    d["Indicator"] == "Population of the official age for pre-primary education, both sexes (number)";
-  })
-  // change string (from CSV) into number format
-  data.forEach(function(d) {
-    d.Value = +d.Value;
-    d.Time = +d.Time;
-//    console.log(d);
+legend.append("text")
+.attr("x",0) 
+//      .attr("dy", "0.75em")
+.attr("y",-10)
+.text("Categories");
+
+
 });
 
-  // don't want dots overlapping axis, so add in buffer to data domain
-  xScale.domain([d3.min(data, xValue)-1, d3.max(data, xValue)+1]);
-  yScale.domain([d3.min(data, yValue)-1, d3.max(data, yValue)+1]);
-
-  svg.append("path")
-  .data([data])
-  .attr("class", "line")
-  .attr("d", valueline);
-
-  // x-axis
-  svg.append("g")
-  .attr("class", "x axis")
-  .attr("transform", "translate(0," + height + ")")
-  .call(xAxis)
-  .append("text")
-  .attr("class", "label")
-  .attr("x", width)
-  .attr("y", -6)
-  .style("text-anchor", "end")
-  .text("Value");
-
-  // y-axis
-  svg.append("g")
-  .attr("class", "y axis")
-  .call(yAxis)
-  .append("text")
-  .attr("class", "label")
-  .attr("transform", "rotate(-90)")
-  .attr("y", 6)
-  .attr("dy", ".71em")
-  .style("text-anchor", "end")
-  .text("Year");
-
-  // draw dots
-  svg.selectAll(".dot")
-  .data(data)
-  .enter().append("circle")
-  .attr("class", "dot")
-  .attr("r", 4)
-  .attr("cx", xMap)
-  .attr("cy", yMap)
-  .style("fill", function(d) { return color(cValue(d));}) 
-  .on("mouseover", function(d) {
-    tooltip.transition()
-    .duration(200)
-    .style("opacity", .9);
-    tooltip.html(d["Country"] + "<br/> (" + xValue(d) 
-     + ", " + yValue(d) + ")")
-    .style("left", (d3.event.pageX + 5) + "px")
-    .style("top", (d3.event.pageY - 28) + "px");
-  })
-  .on("mouseout", function(d) {
-    tooltip.transition()
-    .duration(500)
-    .style("opacity", 0);
-  });
-
-  // draw legend
-  // var legend = svg.selectAll(".legend")
-  //     .data(color.domain())
-  //   .enter().append("g")
-  //     .attr("class", "legend")
-  //     .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
-
-  // // draw legend colored rectangles
-  // legend.append("rect")
-  //     .attr("x", width - 10 )
-  //     .attr("width", 10)
-  //     .attr("height", 10)
-  //     .style("fill", color);
-
-  // // draw legend text
-  // legend.append("text")
-  //     .attr("x", width - 16 )
-  //     .attr("y", 6)
-  //     .attr("dy", ".25em")
-  //     .style("text-anchor", "end")
-  //     .text(function(d) { return d;})
-});
-
-
-
+}

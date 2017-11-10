@@ -1,11 +1,12 @@
   
-  
-  $('#draw').on('click', function (e) {
+
+window.onload = function() {
   // var svg = d3.select("body").append("svg").attr("width","1100").attr("height", "500"),
   // inner = svg.append("g");
   var indicator = $("#indicator :selected").text(); // The text content of the selected option
   var country = $("#country :selected").text(); // The text content of the selected option
   
+  country = "New Zealand";
 
   var first, second, third, fourth, fifth;
   console.log(indicator);
@@ -19,11 +20,11 @@
   //var parseTime = d3.timeParse("%d-%b-%y");
 
   // set the ranges
-  var x = d3.scaleLinear().range([0, width]);
-  var y = d3.scaleLinear().range([height, 0]);
+  var x = d3.scale.linear().range([0, width]);
+  var y = d3.scale.linear().range([height, 0]);
 
   // define the line
-  var valueline = d3.line()
+  var valueline = d3.svg.line()
   .x(function(d) { return x(d.Time); })
   .y(function(d) { return y(d.Value); });
 
@@ -34,7 +35,7 @@
 
   // setup fill color
   var cValue = function(d) { return d.Country;},
-  color = d3.scaleOrdinal(d3.schemeCategory10);
+  color = d3.scale.ordinal(d3.schemeCategory10);
 
   // add the tooltip area to the webpage
   var tooltip = d3.select("body").append("div")
@@ -62,18 +63,19 @@
     })
     // format the data
     data.forEach(function(d) {
-          d["TIME"] = d["TIME"];
-          d.Value = +d.Value;
-      });
+      d["TIME"] = d["TIME"];
+      d.Value = +d.Value;
+    });
     // Scale the range of the data
-    x.domain(d3.extent(data, function(d) { return d.Time;  }));
-    y.domain([0, d3.max(data, function(d) { return d.Value; })]);
+    x.domain(d3.extent(data, function(d) { console.log(d.Time);return d.Time;  }));
+    y.domain([0, d3.max(data, function(d) { console.log(d.Value);return d.Value; })]);
 
     // Add the valueline path.
     svg.append("path")
     .data([data])
     .attr("class", "line")
     .attr("d", valueline);
+
 
     // draw dots
     svg.selectAll(".dot")
@@ -103,14 +105,18 @@
     // Add the X Axis
     svg.append("g")
     .attr("transform", "translate(0," + height + ")")
-    .call(d3.axisBottom(x).tickFormat(d3.format("d")));
+    .call(d3.svg.axis()
+      .scale(x)
+      .orient("bottom").tickFormat(d3.format("d")));
 
     // Add the Y Axis
     svg.append("g")
-    .call(d3.axisLeft(y));
+    .call(d3.svg.axis()
+      .scale(y)
+      .orient("left"));
 
   });
-})
+}
 
 
 

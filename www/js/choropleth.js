@@ -2,7 +2,7 @@ var indicator = $("#indicator :selected").text(); // The text content of the sel
 var year = $("#year :selected").text(); // The text content of the selected option
 
 window.onload = function() {
-  draw(indicator,year)
+  draw(indicator,year);
 }
 
 function reloadInd(){
@@ -14,25 +14,37 @@ function reloadYr(yr){
   draw(this.indicator, yr.value);
 }
 
+// $('#year').on('change', function (e) {
+//   var optionSelected = $("option:selected", this);
+//   draw(indicator, this.value);
+// });
+
 function play(){
+
   indicator = $("#indicator :selected").text();
-  year = 1999;
-  for(i = year; i < 2017; i++){
-    draw(indicator, i);
-    console.log(indicator);
-    console.log(i);
-  }
-}
+  year =  $("#year :selected").text();
+  // document.getElementById("year").selectedIndex = 3;
+  //for(i = year; i < 2017; i++){
+  if(year==2016){return;} 
+    nxtYr = parseInt(year) + 1;
+    console.log(nxtYr);
+    draw(indicator, nxtYr);
+    $("#year").val(nxtYr);
+  //   d3.selectAll("svg").remove();
+  // }
+}  
+
 
 function draw(ind, y) {
-  d3.select("#canvas-svg").selectAll("svg").remove();
+
   var indicator = ind;
   var year = y;
+  d3.selectAll("svg").remove();
   d3.csv("data/rates.csv", function(error, data) {
     if(error) { console.log(error); }
     var config = {"data0":"Country","data1":"Value","data2":"Population",
     "label0":"label 0","label1":"label 1","color0":"#f7fcb9","color1":"#31a354",
-    "width":960,"height":960}
+    "width":1000,"height":1000}
     
     var filteredData = data.filter(function(d){
       if(d["TIME"] == year && d.Indicator == indicator){
@@ -133,17 +145,20 @@ function draw(ind, y) {
     .datum(graticule)
     .attr("class", "graticule")
     .attr("d", path);
+
+    svg.append("text")
+
+        .attr("x", (config.width / 2))             
+        .attr("y", 20)
+        .attr("text-anchor", "middle") 
+        .attr("font-family", "avenir") 
+        .style("font-size", "17px")
+        .text(ind + ' in year ' + year );
     
     var valueHash = {};
     function calculatePercentage(p, d){
       return (d/p)*100;
     }
-
-    // var popMap = [];
-    // d3.csv("data/pop.csv", function(err, data){
-    //   popMap = data.map(function(d) { return [ +d["Country Name"], +d["2009"] ]; });
-    //   console.log(popMap)
-    // });
 
     var quantize = d3.scale.quantize()
     .domain([0, 1.0])
@@ -161,11 +176,7 @@ function draw(ind, y) {
     
 
     filteredData.forEach(function(d) {
-      //if(d["TIME"] == year && d.Indicator == indicator){
         valueHash[d[MAP_KEY]] = +d[MAP_VALUE];
-            //valueHash[d[MAP_KEY]] = +(calculatePercentage(d.Population, d.Value));
-            //d[MAP_POP] = +(calculatePercentage(d.Population, d.Value));
-         // }
        });  
 
     d3.json("https://s3-us-west-2.amazonaws.com/vida-public/geo/world-topo-min.json", function(error, world) {
@@ -206,10 +217,16 @@ function draw(ind, y) {
 
         html += "<div class=\"tooltip_kv\">";
         html += "<span class=\"tooltip_key\">";
-        html += d.properties.name;
+        html += d.properties.name + "<br>";
         html += "</span>";
         html += "<span class=\"tooltip_value\">";
         html += (valueHash[d.properties.name] ? valueFormat(valueHash[d.properties.name]) : "");
+        if(valueHash[d.properties.name] > 100){
+        html += "<p style='font-size: 10px;'><br> GER can exceed 100% due to the inclusion <br>" +
+                "of over-aged and under-aged pupils/students <br>" +
+                "because of early or late entrants, <br>" +
+                "and grade repetition.<p>"  
+        }
         html += "";
         html += "</span>";
         html += "</div>";

@@ -29,7 +29,7 @@
 				<ul class="nav navbar-nav navbar-right">
 					<li><a href="index.html">Global Participation</a></li>
 					<li class="active"><a href="#">Participation over time</a></li>
-					<li><a href="pie.html">Enrolled vs. Non-enrolled</a></li>
+					<li><a href="pie.html">Population Breakdown</a></li>
 				</ul>
 			</div>
 		</div>
@@ -39,7 +39,7 @@
 		<div class="starter-template">
 			<div class="form-group row">
 				<div class="col-xs-6  pull-right">
-					<select class="form-control" style="font-size:15px;" id="indicator" onchange="reloadInd();">
+					<select class="form-control" style="font-size:15px;" id="indicator" onchange="compare();">
 					  <option value="1">Population of the official age for pre-primary education, both sexes (number)</option>
 					  <option value="2">Population of the official age for pre-primary education, female (number)</option>
 					  <option value="3">Population of the official age for pre-primary education, male (number)</option>
@@ -53,9 +53,21 @@
 					  <option value="11">Population of the official age for tertiary education, female (number)</option>
 					  <option value="12">Population of the official age for tertiary education, male (number)</option>
 					</select>
-				</div>				
+					<p style="font-size: 12px;"><br>Select a new graph to compare with the current graph. Click close to remove top graph.</p>
+				</div>	
+
+<!-- 				<div class="col-xs-1  pull-right">
+					<button type="button" class="btn btn-default btn-md" onclick="compare()">Compare</button>
+				</div>	 -->	
+			</div>		
 			</div>
 			<script type="text/javascript" src="js/test.js"></script>
+			<!-- <br><h4><a onclick="asia();" id="asia">Asia</a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<a onclick="australia();" id="oceania">Oceania</a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<a onclick="nAmerica();" id="north">North America</a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<a onclick="sAmerica();" id="south">South America</a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<a onclick="europe();" id="europe">Europe</a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<a onclick="africa();" id="africa">Africa</a></h4> -->
 		</div>
 	</div>
 	
@@ -74,8 +86,28 @@ svg {
   zoom: 1.2;
 }*/
 
+/*a:hover{
+	font-weight: bold;
+    text-decoration: none;
+}
+
+a:active{
+	font-weight: bold;
+}*/
+
+svg{
+	position: inherit;
+	-webkit-transform:scale(1);
+}
+h4{
+	/*text-align: right; 
+	margin-right: 150px;	*/
+	transform: rotate(90deg);
+	transform-origin: left top 0;
+}
+
 #txttool{
-  font: 16px sans-serif;
+  font: 13px avenir;
 }
 
 .axis path,
@@ -128,6 +160,10 @@ svg {
 .brush .extent {
   stroke: #FFF;
   shape-rendering: crispEdges;
+}
+
+body {
+  font: 15px avenir;
 }
 </style>
 </html>

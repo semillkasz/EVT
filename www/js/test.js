@@ -1,36 +1,51 @@
 var indicator = $("#indicator :selected").text(); // The text content of the selected option
+var currentContinent = null;
 
 window.onload = function() {
-  draw(indicator)
+  d3.selectAll("svg").remove();
+  draw(indicator, currentContinent);
 }
 
 function reloadInd(){
+  d3.selectAll("svg").remove();
   indicator = $("#indicator :selected").text();
-  draw(indicator);
+  draw(indicator, currentContinent);
 }
 
-function draw(ind){
-  d3.select("#canvas-svg").selectAll("svg").remove();
-var margin = {top: 20, right: 150, bottom: 100, left: 250},
-margin2 = { top: 40, right: 10, bottom: 20, left: 40 },
-width = 1300 - margin.left - margin.right,
-height = 700 - margin.top - margin.bottom,
-height2 = 500 - margin2.top - margin2.bottom;
+function compare(){
+  if(!comparing){
+    comparing = true;
+  } else{
+    comparing = false;
+  }
+    //document.getElementById('ind2').style.display = "block";
+    indicator = $("#indicator :selected").text();
+    draw(indicator, currentContinent);
+  }
+
+  function draw(ind, continent){
+    console.log(continent);
+    var margin = {top: 30, right: 190, bottom: 100, left: 250},
+    margin2 = { top: 10, right: 20, bottom: 20, left: 40 },
+    width = 1450 - margin.left - margin.right,
+    height = 700 - margin.top - margin.bottom,
+    height2 = 500 - margin2.top - margin2.bottom;
 
 //var parseDate = d3.time.format("%Y%m%d").parse;
 var bisectDate = d3.bisector(function(d) { return d.Time; }).left;
 
-var xScale = d3.time.scale()
+var xScale = d3.scale.linear()
 .range([0, width]),
 
-xScale2 = d3.time.scale()
+xScale2 = d3.scale.linear()
     .range([0, width]); // Duplicate xScale for brushing ref later
 
     var yScale = d3.scale.linear()
     .range([height, 0]);
 
 // 40 Custom DDV colors 
-var color = d3.scale.ordinal().range(["#48A36D",  "#56AE7C",  "#64B98C", "#72C39B", "#80CEAA", "#80CCB3", "#7FC9BD", "#7FC7C6", "#7EC4CF", "#7FBBCF", 
+var color = d3.scale.ordinal().range(
+  ["#48A36D",  "#56AE7C",  "#64B98C", "#72C39B", "#80CEAA", "#80CCB3", "#7FC9BD", "#7FC7C6", "#7EC4CF", "#7FBBCF", 
   "#7FB1CF", "#80A8CE", "#809ECE", "#8897CE", "#8F90CD", "#9788CD", "#9E81CC", "#AA81C5", "#B681BE", "#C280B7",
   "#CE80B0", "#D3779F", "#D76D8F", "#DC647E", "#E05A6D", "#E16167", "#E26962", "#E2705C", "#E37756", "#E38457", 
   "#E39158", "#E29D58", "#E2AA59", "#E0B15B", "#DFB95C", "#DDC05E", "#DBC75F", "#E3CF6D", "#EAD67C", "#F2DE8A"]);  
@@ -48,11 +63,18 @@ var xAxis = d3.svg.axis()
     .scale(yScale)
     .orient("left");  
 
-    var line = d3.svg.line()
-    .interpolate("basis")
-    .x(function(d) { return xScale(d.Time); })
-    .y(function(d) { return yScale(d.Value); });
+    // var line = d3.svg.line()
+    // .interpolate("basis")
+    // .x(function(d) { return xScale(d.date[0]); })
+    // .y(function(d) { return yScale(d.rating[0]); });
     //.defined(function(d) { return d.Value; });  // Hiding line value defaults of 0 for missing data
+
+    var line = function(x, y){
+      return d3.svg.line().interpolate("basis")
+      .x(function(d,i) { return xScale(x[i]); })
+      .y(function(d,i) { return yScale(y[i]); })
+      (Array(x.length));;
+    }
 
 var maxY; // Defined later to update yAxis
 
@@ -72,20 +94,162 @@ svg.append("rect")
 .style("fill", "white"); 
 
 
+var a = ["Afghanistan", "Armenia", "Azerbaijan", "Bangladesh", "Bhutan", "Brunei Darussalam", "Cambodia", "China", "Democratic People's Republic of Korea", "Egypt", 
+"India", "Indonesia", "Iran (Islamic Republic of)", "Iraq", "Israel", "Japan", "Jordan", "Kazakhstan", "Kyrgyzstan", "Lebanon", 
+"Malaysia", "Mongolia",  "Myanmar", "Nepal", "Pakistan", "Papua New Guinea", "Philippines", "Qatar", "Republic of Korea", "Russian Federation", 
+"Saudi Arabia", "Sri Lanka", "Syrian Arab Republic", "Tajikistan", "Turkmenistan", "Thailand", "United Arab Emirates", "Uzbekistan",  "Viet Nam", "Yemen" ];
+var aus = ["Australia", "Cook Islands", "Fiji", "Honduras", "Kiribati", "Marshall Islands", "Nauru", "New Zealand", "Niue", "Palau",
+"Samoa", "Solomon Islands", "Tokelau", "Tonga", "Tuvalu", "Vanuatu"];
+var nAm = ["Barbados", "Bermuda", "Canada", "Dominica", "Puerto Rico",  "Saint Lucia", "United States of America"];
+var sAm =["Argentina", "Bahamas", "Brazil", "Belize", "Chile", "Colombia", "Costa Rica", "Cuba", "Dominica", "Ecuador", "El Salvador", "Guatemala", 
+"Guyana", "Haiti", "Jamaica", "Mexico", "Nicaragua", "Panama", "Paraguay", "Peru", "Suriname"];
+var eur = ["Albania", "Austria", "Belarus", "Belgium", "Bosnia and Herzegovina", "Croatia", "Cyprus", "Czechia", "Denmark", "Estonia", "Finland", 
+"France", "Georgia", "Greece", "Hungary", "Iceland", "Ireland", "Italy", "Kosovo", "Latvia", "Lithuania", "Luxembourg", "Montenegro", 
+"Moldova", "Netherlands", "Norway", "Poland", "Portugal", "Romania", "San Marino", "Slovakia", "Slovenia", "Spain", "Sweden",  "Switzerland", 
+"Turkey", "United Kingdom", "Ukraine"];
+var afr = ["Angola", "Benin", "Botswana", "Burundi", "Cabo Verde", "Cameroon", "Central African Republic", "Chad", "Comoros", "Congo",
+ "Gabon", "Kenya", "Lesotho", "Liberia", "Libya", "Madagascar", "Malawi", "Mali", "Mauritania", "Mauritius", "Mozambique", 
+ "Namibia", "Niger", "Rwanda", "Senegal", "Seychelles", "Sudan", "Togo", "Tunisia", "Uganda", "Zambia", "Zimbabwe"];
+
+var continents = ["Asia", "Oceania", "North America", "South America", "Europe", "Africa"];
+
+
 d3.csv("data/edu.csv", function(error, data) { 
 
-  var columnNames = ["Qatar", "Israel", "China", "Canada", "New Zealand", "Taiwan", "Sudan", "Thailand", "Mongolia", "Mexico", 
-  "Australia", "Argetina", "Egypt", "Sweden", "Morocco", "Peru", "Iceland", "Norway", "Yemen", "Nigeria",
-  "Finland", "Senegal", "Fiji", "South Africa", "Turkey", "India", "Myanmar", "Chile", "Russian Federation", "Denmark",
-                    "Costa Rica", "France", "Oman", "Indonesia", "Malaysia", "Ghana", "Slovakia", "Paraguay", "Saudi Arabia", "Philippines"]; //grab the key values from your first data row
+  var contLegendSpace = 50;
+
+  var columnNames;//grab the key values from your first data row
+
+  var texts = svg.selectAll("text")
+  .data(continents)
+  .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; })
+  .enter();
+
+  texts.append("text")
+    .attr("x", -80)
+    .attr("y", 600)
+    .attr("dy", "1em")
+    .style("font", "10px avenir")
+    .style("fill", "#898686")
+    .text("Close top graph [X]")
+    .on("mouseover", function(d){
+        svg.append("text")
+        .style("fill", "#797979");
+    })
+    .on("mouseout", function(d){
+        svg.append("text")
+        .style("fill", "#898686");
+    })
+    .on("click", function(d){
+        //d3.select(this.parentNode).remove();
+        d3.select("svg").remove();
+            });
+
+  texts.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "middle") 
+        .attr("font-family", "avenir") 
+        .style("font-size", "16px") 
+        .text(ind);
+
+  texts.append("text")
+  .text(function(d){ return d; })
+       // set position etc.
+       .attr("font-family", "avenir")
+       .attr("font-size", 18)
+       .attr("text-anchor", "start")
+       .attr("x", width + (margin.right/10)) 
+       .attr("y", function (d, i) { 
+        if(d == "Asia") {
+         return (50);
+       }
+       else if (d == "North America"){
+        return (95) + (i*95);
+      }
+      else if (d == "South America"){
+        return (106) + (i*106);
+      }
+      else if (d == "Europe"){
+        return (101) + (i*101);
+      }
+      else if (d == "Africa"){
+        return (97) + (i*97);
+      }
+      else if (d = "Oceania") {
+        return (71) + (i*71);
+      }
+    }) 
+       .attr("dy", ".33em")
+       .attr("style", "fill:#7FB1CF; writing-mode: tb; glyph-orientation-vertical: 0")
+       .style("text-anchor", "end")
+       .on("click", function(d){
+        if(d == "Asia") {
+         d3.select("svg").remove();
+         currentContinent = "Asia";
+         draw(ind, currentContinent);
+         console.log("asia clicked");
+
+       }
+       else if (d == "North America"){
+        d3.select("svg").remove();
+        currentContinent = "North America";
+        draw(ind, currentContinent);
+        console.log("NA clicked");
+      }
+      else if (d == "South America"){
+        d3.select("svg").remove();
+        currentContinent = "South America";
+        draw(ind, currentContinent);
+        console.log("SA clicked");
+      }
+      else if (d == "Europe"){
+        d3.select("svg").remove();
+        currentContinent = "Europe";
+        draw(ind, currentContinent);
+        console.log("europe clicked");
+      }
+      else if (d == "Africa"){
+        d3.select("svg").remove();
+        currentContinent = "Africa";
+        draw(ind, currentContinent);
+        console.log("africa clicked");
+      }
+      else if (d == "Oceania") {
+        d3.select("svg").remove();
+        currentContinent = "Oceania";
+        draw(ind, currentContinent);
+        console.log("oceania clicked");
+      }
+    });
+
+
+       if(currentContinent == "Asia"){
+        columnNames = a;
+      } else if(currentContinent == "Oceania"){
+        columnNames = aus;
+      }else if(currentContinent == "North America"){
+        columnNames = nAm;
+      }else if(currentContinent == "South America"){
+        columnNames = sAm;
+      }else if(currentContinent == "Europe"){
+        columnNames = eur;
+      }else if(currentContinent == "Africa"){
+        columnNames = afr;
+      } else if (currentContinent == null) {
+       columnNames = ["Argentina", "Australia", "Canada", "Chile", "China", "Costa Rica", "Denmark", "Egypt", "Fiji", "Finland", "France", "Ghana", 
+"Iceland", "India", "Indonesia", "Israel", "Japan", "Malaysia", "Mexico", "Mongolia", "Morocco", "Myanmar", "New Zealand", 
+"Nigeria", "Norway", "Oman", "Paraguay", "Peru", "Philippines", "Qatar", "Russian Federation",  
+"Saudi Arabia", "Senegal", "Slovakia", "South Africa", "Sudan", "Sweden", "Thailand", "Turkey", "Yemen"]; 
+     }
+
   color.domain(columnNames);//.filter(function(key) { // Set the domain of the color ordinal scale to be all the csv headers except "date", matching a color to an issue
   //   return key !== "date"; 
   // }));
 
-  console.log(indicator);
-
+  num = 40;
   var filtered = data.filter(function(d) {
-   for(i = 0; i < 40; i++){
+   for(i = 0; i < columnNames.length; i++){
     if(d.Indicator == indicator  && d.Country == columnNames[i]){
       return d;
     }
@@ -96,74 +260,50 @@ d3.csv("data/edu.csv", function(error, data) {
     d["TIME"] = d["TIME"];
     d.Value = +d.Value;
   });
-
-
+  
   var categories = color.domain().map(function(name) { // Nest the data into an array of objects with new keys
 
     return {
-      name: name, // "name": the csv headers except date
-      values: filtered.map(function(d) { // "values": which has an array of the dates and ratings
+       name: name, // "name": the csv headers except date
+       date:  filtered.map(function(d) { // "values": which has an array of the dates and ratings
         if(d.Country == name){
-          return {
-           date: d["TIME"], 
-           rating: d.Value
-         };
-       } else{return {rating: null}}          
-     }),  
-      visible: (name === "Philippines" ? true : false)
+          return d["TIME"];
+        }
+      }),
+      rating:  filtered.map(function(d) { // "values": which has an array of the dates and ratings
+        if(d.Country == name){
+          return d.Value;
+        }
+      }),   
+      visible: false//(name === "Philippines" ? true : false)
     };
   });
+  for(i = 0; i < columnNames.length; i++){
+    categories[i].rating = categories[i].rating.filter(Boolean);
+    categories[i].date = categories[i].date.filter(Boolean);
+  }
+
+  function search(nameKey, categories){
+    for (var i=0; i < categories.length; i++) {
+      if (categories[i].name === nameKey) {
+        return categories[i];
+      }
+    }
+  }
 
   console.log(categories);
-  
+
   xScale.domain(d3.extent(filtered, function(d) { return d.Time; })); // extent = highest and lowest points, domain is data, range is bouding box
 
-  yScale.domain([0, d3.max(filtered, function(c) { return d3.max(c.Value, function(v) { return v.Value; }); })
-    ]);
+  yScale.domain([0, d3.max(categories, function(c) { return d3.max(c.rating, function(v,i) { return v.rating; }); })]);
 
   xScale2.domain(xScale.domain()); // Setting a duplicate xdomain for brushing reference later
-
-  // var valueline = d3.line()
-  // .x(function(d) { return x(d["Time"]; })
-  // .y(function(d) { return y(d.Value); });
-
- // //for slider part-----------------------------------------------------------------------------------
-
- // var brush = d3.svg.brush()//for slider bar at the bottom
- //    .x(xScale2) 
- //    .on("brush", brushed);
-
- //  context.append("g") // Create brushing xAxis
- //      .attr("class", "x axis1")
- //      .attr("transform", "translate(0," + height2 + ")")
- //      .call(xAxis2);
-
- //  var contextArea = d3.svg.area() // Set attributes for area chart in brushing context graph
- //    .interpolate("monotone")
- //    .x(function(d) { return xScale2(d.Time); }) // x is scaled to xScale2
- //    .y0(height2) // Bottom line begins at height2 (area chart not inverted) 
- //    .y1(0); // Top line of area, 0 (area chart not inverted)
-
- //  //plot the rect as the bar at the bottom
- //  context.append("path") // Path is created using svg.area details
- //    .attr("class", "area")
- //    .attr("d", contextArea(categories[0].values)) // pass first categories data .values to area path generator 
- //    .attr("fill", "#F1F1F2");
-
- //  //append the brush for the selection of subsection  
- //  context.append("g")
- //    .attr("class", "x brush")
- //    .call(brush)
- //    .selectAll("rect")
- //    .attr("height", height2) // Make brush rects same height 
- //      .attr("fill", "#E6E7E8");  
- //  //end slider part-----------------------------------------------------------------------------------
 
   // draw line graph
   svg.append("g")
   .attr("class", "x axis")
   .attr("transform", "translate(0," + height + ")")
-  .call(xAxis);
+  .call(xAxis.tickFormat(d3.format("d")));
 
   svg.append("g")
   .attr("class", "y axis")
@@ -175,6 +315,8 @@ d3.csv("data/edu.csv", function(error, data) {
   .attr("dy", ".71em")
   .style("text-anchor", "end")
   .text("Enrolled Population");
+
+
 
   var issue = svg.selectAll(".issue")
       .data(categories) // Select nested data and append to new svg group elements
@@ -188,10 +330,35 @@ d3.csv("data/edu.csv", function(error, data) {
         return "line-" + d.name.replace(" ", "").replace("/", ""); // Give line id of line-(insert issue name, with any spaces replaced with no spaces)
       })
       .attr("d", function(d) { 
-        return d.visible ? line(filtered) : null; // If array key "visible" = true then draw line, if not then don't 
+        return d.visible ? line(d.date, d.rating) : null; // If array key "visible" = true then draw line, if not then don't 
       })
       .attr("clip-path", "url(#clip)")//use clip path to make irrelevant part invisible
       .style("stroke", function(d) { return color(d.name); });
+
+
+    //  svg.selectAll(".dot")
+    // .data(categories)
+    // .enter().append("circle")
+    // .attr("class", "dot")
+    // .attr("r", 4)
+    // .attr("cx", function(d,i) { return (xScale[i]);})
+    // .attr("cy",  function(d,i) { return (yScale[i]);})
+    // .style("fill", function(d) { return color(d.name);}) 
+    // .on("mouseover", function(d) {
+    //   tooltip.transition()
+    //   .duration(200)
+    //   .style("opacity", .9);
+    //   tooltip.html(d["Country"] + "<br/> (" + xValue(d) 
+    //     + ", " + yValue(d) + ")")
+    //   .style("left", (d3.event.pageX + 5) + "px")
+    //   .style("top", (d3.event.pageY - 28) + "px");
+    // })
+    // .on("mouseout", function(d) {
+    //   tooltip.transition()
+    //   .duration(500)
+    //   .style("opacity", 0);
+    // });
+
 
   // draw legend
   var legendSpace = 15;//450 / categories.length; // 450/number of issues (ex. 40)    
@@ -208,7 +375,6 @@ d3.csv("data/edu.csv", function(error, data) {
 
       .on("click", function(d){ // On click make d.visible 
         d.visible = !d.visible; // If array key for this data selection is "visible" = true then make it false, if false then make it true
-
         maxY = findMaxY(categories); // Find max Y rating value categories data with "visible"; true
         yScale.domain([0,maxY]); // Redefine yAxis domain based on highest y value of categories data with "visible"; true
         svg.select(".y.axis")
@@ -218,7 +384,7 @@ d3.csv("data/edu.csv", function(error, data) {
         issue.select("path")
         .transition()
         .attr("d", function(d){
-            return d.visible ? line(filtered) : null; // If d.visible is true then draw line for this d selection
+            return d.visible ? line(d.date, d.rating) : null; // If d.visible is true then draw line for this d selection
           })
 
         issue.select("rect")
@@ -276,11 +442,11 @@ d3.csv("data/edu.csv", function(error, data) {
             .attr("x", width - 150) // hover date text position
             .style("fill", "#E6E7E8");
 
-            var columnNames =["Qatar", "Israel", "China", "Canada", "New Zealand", "Taiwan", "Sudan", "Thailand", "Mongolia", "Mexico", 
-            "Australia", "Argetina", "Egypt", "Sweden", "Morocco", "Peru", "Iceland", "Norway", "Yemen", "Nigeria",
-            "Finland", "Senegal", "Fiji", "South Africa", "Turkey", "India", "Myanmar", "Chile", "Russian Federation", "Denmark",
-                    "Costa Rica", "France", "Oman", "Indonesia", "Malaysia", "Ghana", "Slovakia", "Paraguay", "Saudi Arabia", "Philippines"]; //grab the key values from your first data row
-                                     //these are the same as your column names
+            // var columnNames =["Qatar", "Israel", "China", "Canada", "New Zealand", "Japan", "Sudan", "Thailand", "Mongolia", "Mexico", 
+            // "Australia", "Argetina", "Egypt", "Sweden", "Morocco", "Peru", "Iceland", "Norway", "Yemen", "Nigeria",
+            // "Finland", "Senegal", "Fiji", "South Africa", "Turkey", "India", "Myanmar", "Chile", "Russian Federation", "Denmark",
+            //                 "Costa Rica", "France", "Oman", "Indonesia", "Malaysia", "Ghana", "Slovakia", "Paraguay", "Saudi Arabia", "Philippines"]; //grab the key values from your first data row
+            //                          //these are the same as your column names
                   //.slice(1); //remove the first column name (`date`);
 
   var focus = issue.select("g") // create group elements to house tooltip text
@@ -291,7 +457,9 @@ d3.csv("data/edu.csv", function(error, data) {
   focus.append("text") // http://stackoverflow.com/questions/22064083/d3-js-multi-series-chart-with-y-value-tracking
   .attr("class", "tooltip")
         .attr("x", width + 20) // position tooltips  
-        .attr("y", function (d, i) { return (legendSpace)+i*(legendSpace); }); // (return (11.25/2 =) 5.625) + i * (5.625) // position tooltips       
+        .attr("y", function (d, i) { return (legendSpace)+i*(legendSpace); }); // (return (11.25/2 =) 5.625) + i * (5.625) // position tooltips  
+
+
 
   // Add mouseover events for hover line.
   d3.select("#mouse-tracker") // select chart plot background rect #mouse-tracker
@@ -312,7 +480,7 @@ d3.csv("data/edu.csv", function(error, data) {
       //var graph_y = yScale.invert(mouse_y);
       //console.log(graph_x);
       
-      var format = d3.time.format('%b %Y'); // Format hover date text to show three letter month and full year
+      var format = d3.time.format('d'); // Format hover date text to show three letter month and full year
       
       hoverDate.text(format(graph_x)); // scale mouse position to xScale date and format it to show month and year
       
@@ -341,39 +509,105 @@ d3.csv("data/edu.csv", function(error, data) {
          return (d[columnName]);
        });
     }; 
-
-  //for brusher of the slider bar at the bottom
-  // function brushed() {
-
-  //   xScale.domain(brush.empty() ? xScale2.domain() : brush.extent()); // If brush is empty then reset the Xscale domain to default, if not then make it the brush extent 
-
-  //   svg.select(".x.axis") // replot xAxis with transition when brush used
-  //         .transition()
-  //         .call(xAxis);
-
-  //   maxY = findMaxY(categories); // Find max Y rating value categories data with "visible"; true
-  //   yScale.domain([0,maxY]); // Redefine yAxis domain based on highest y value of categories data with "visible"; true
-
-  //   svg.select(".y.axis") // Redraw yAxis
-  //     .transition()
-  //     .call(yAxis);   
-
-  //   issue.select("path") // Redraw lines based on brush xAxis scale and domain
-  //     .transition()
-  //     .attr("d", function(d){
-  //         return d.visible ? line(d.values) : null; // If d.visible is true then draw line for this d selection
-  //     });
-
-  // };      
-
 }); // End Data callback function
 }
 function findMaxY(data){  // Define function "findMaxY"
-  var maxYValues = data.map(function(d) { 
-    if (d.visible){
-        return d3.max(d.values, function(value) { // Return max rating value
-          return value.rating; })
+var maxYValues = data.map(function(d) { 
+  if (d.visible){
+    return d3.max(d.rating);
+        // d.values, function(value) { // Return max rating value
+        //   return value.rating; })
       }
     });
-  return d3.max(maxYValues);
+return d3.max(maxYValues);
 }
+
+// var isAsia = false,
+// isAus = false,
+// isNA  = false,
+// isSA = false, 
+// isEur = false,
+// isAfr = false; 
+
+var comparing = false; 
+
+// function asia(){
+//   isAsia = true;
+//   isAus = false,
+//   isNA  = false,
+//   isSA = false, 
+//   isEur = false,
+//   isAfr = false; 
+//   console.log(isAsia, isAus, isNA, isSA, isEur, isAfr);
+//   d3.selectAll("svg").remove();
+
+//   draw(indicator);
+// }
+
+// function australia(){
+//   isAus = true;
+//   isAsia = false,
+//   isNA  = false,
+//   isSA = false, 
+//   isEur = false,
+//   isAfr = false; 
+
+//   console.log(isAsia, isAus, isNA, isSA, isEur, isAfr);
+//   d3.selectAll("svg").remove();
+
+//   draw(indicator);
+// }
+
+// function nAmerica(){
+//   isNA = true;
+//   isAsia = false,
+//   isAus = false,
+//   isSA = false, 
+//   isEur = false,
+//   isAfr = false; 
+
+//   console.log(isAsia, isAus, isNA, isSA, isEur, isAfr);
+//   d3.selectAll("svg").remove();
+
+//   draw(indicator);
+// }
+
+// function sAmerica(){
+//   isSA = true;
+//   isAsia = false,
+//   isAus = false,
+//   isNA  = false,
+//   isEur = false,
+//   isAfr = false; 
+
+//   console.log(isAsia, isAus, isNA, isSA, isEur, isAfr);
+//   d3.selectAll("svg").remove();
+
+//   draw(indicator);
+// }
+
+// function europe(){
+//   isEur = true;
+//   isAsia = false,
+//   isAus = false,
+//   isNA  = false,
+//   isSA = false, 
+//   isAfr = false; 
+
+//   console.log(isAsia, isAus, isNA, isSA, isEur, isAfr);
+//   d3.selectAll("svg").remove();
+
+//   draw(indicator);
+// }
+
+// function africa(){
+//   isAfr = true;
+//   isAsia = false,
+//   isAus = false,
+//   isNA  = false,
+//   isSA = false, 
+//   isEur = false;
+//   console.log(isAsia, isAus, isNA, isSA, isEur, isAfr);
+//   d3.selectAll("svg").remove();
+//   draw(indicator);
+// }
